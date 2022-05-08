@@ -11,5 +11,5 @@ data class User(
     val userName: String,
     val password: String,
     @ManyToMany(fetch = FetchType.EAGER)
-    val roles: List<Role> = emptyList(),
+    val roles: MutableList<Role> = mutableListOf(),
 )
