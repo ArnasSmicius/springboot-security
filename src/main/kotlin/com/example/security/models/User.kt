@@ -8,7 +8,7 @@ data class User(
     @Id @GeneratedValue(strategy = AUTO)
     val id: Long,
     val name: String,
-    val userName: String,
+    val username: String,
     val password: String,
     @ManyToMany(fetch = FetchType.EAGER)
     val roles: MutableList<Role> = mutableListOf(),
