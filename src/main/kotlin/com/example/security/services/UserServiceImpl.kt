@@ -5,6 +5,10 @@ import com.example.security.models.User
 import com.example.security.repositories.RoleRepository
 import com.example.security.repositories.UserRepository
 import org.slf4j.LoggerFactory
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -13,7 +17,24 @@ import org.springframework.transaction.annotation.Transactional
 class UserServiceImpl(
     private val userRepository: UserRepository,
     private val roleRepository: RoleRepository,
-) : UserService {
+) : UserService, UserDetailsService {
+    override fun loadUserByUsername(username: String): UserDetails {
+        val optionalUser = userRepository.findByUsername(username)
+        if (optionalUser.isPresent) {
+            log.info("User found in the database: $username")
+            val user = optionalUser.get()
+            return org.springframework.security.core.userdetails.User(
+                user.username,
+                user.password,
+                user.roles.map {role ->
+                    SimpleGrantedAuthority(role.name)
+                }
+            )
+        } else {
+            log.error("User not found in the database")
+            throw UsernameNotFoundException("User not found in the database")
+        }
+    }
     override fun saveUser(user: User): User {
         log.info("Saving new user ${user.name} to the database")
         return userRepository.save(user)
@@ -28,12 +49,12 @@ class UserServiceImpl(
         log.info("Adding role $roleName to user $username")
         val user = userRepository.findByUsername(username)
         val role = roleRepository.findByName(roleName)
-        user.roles.add(role)
+        user.get().roles.add(role)
     }
 
     override fun getUser(username: String): User {
         log.info("Fetching user $username")
-        return userRepository.findByUsername(username)
+        return userRepository.findByUsername(username).get()
     }
 
     override fun getUsers(): List<User> {
