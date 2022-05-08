@@ -3,6 +3,7 @@ package com.example.security.security
 import com.example.security.filter.CustomAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -25,10 +26,15 @@ class SecurityConfig(
     }
 
     override fun configure(http: HttpSecurity) {
+        val customAuthenticationFilter = CustomAuthenticationFilter(authenticationManagerBean())
+        customAuthenticationFilter.setFilterProcessesUrl("/api/login")
         http.csrf().disable()
         http.sessionManagement().sessionCreationPolicy(STATELESS)
-        http.authorizeRequests().anyRequest().permitAll()
-        http.addFilter(CustomAuthenticationFilter(authenticationManagerBean()))
+        http.authorizeRequests().antMatchers("/api/login").permitAll()
+        http.authorizeRequests().antMatchers(HttpMethod.GET,"/api/users/**").hasAnyAuthority("ROLE_USER")
+        http.authorizeRequests().antMatchers(HttpMethod.GET,"/api/roles/**").hasAnyAuthority("ROLE_ADMIN")
+        http.authorizeRequests().anyRequest().authenticated()
+        http.addFilter(customAuthenticationFilter)
     }
 
     @Bean

@@ -2,7 +2,9 @@ package com.example.security.filter
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -44,8 +46,11 @@ class CustomAuthenticationFilter(
             .withIssuer(request.requestURL.toString())
             .sign(algorithm)
 
-        response.setHeader("access_token", accessToken)
-        response.setHeader("refresh_token", refreshToken)
+//        response.setHeader("access_token", accessToken)
+//        response.setHeader("refresh_token", refreshToken)
+        val tokens = mapOf("access_token" to accessToken, "refresh_token" to refreshToken)
+        response.contentType = APPLICATION_JSON_VALUE
+        ObjectMapper().writeValue(response.outputStream, tokens)
     }
 
     companion object {

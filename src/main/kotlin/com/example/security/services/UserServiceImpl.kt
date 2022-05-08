@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 class UserServiceImpl(
     private val userRepository: UserRepository,
     private val roleRepository: RoleRepository,
+    private val passwordEncoder: PasswordEncoder,
 ) : UserService, UserDetailsService {
     override fun loadUserByUsername(username: String): UserDetails {
         val optionalUser = userRepository.findByUsername(username)
@@ -37,7 +39,8 @@ class UserServiceImpl(
     }
     override fun saveUser(user: User): User {
         log.info("Saving new user ${user.name} to the database")
-        return userRepository.save(user)
+        val encodedPassword = user.copy(password = passwordEncoder.encode(user.password))
+        return userRepository.save(encodedPassword)
     }
 
     override fun saveRole(role: Role): Role {
