@@ -1,6 +1,7 @@
 package com.example.security.security
 
 import com.example.security.filter.CustomAuthenticationFilter
+import com.example.security.filter.CustomAuthorizationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy.STATELESS
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
 @EnableWebSecurity
@@ -35,6 +37,7 @@ class SecurityConfig(
         http.authorizeRequests().antMatchers(HttpMethod.GET,"/api/roles/**").hasAnyAuthority("ROLE_ADMIN")
         http.authorizeRequests().anyRequest().authenticated()
         http.addFilter(customAuthenticationFilter)
+        http.addFilterBefore(CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter::class.java)
     }
 
     @Bean

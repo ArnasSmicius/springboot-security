@@ -2,8 +2,11 @@ package com.example.security.filter
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders.AUTHORIZATION
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -35,7 +38,13 @@ class CustomAuthorizationFilter : OncePerRequestFilter() {
                     SecurityContextHolder.getContext().authentication = authenticationToken
                     filterChain.doFilter(request, response)
                 } catch (e: java.lang.Exception) {
-                    log.error("Error occurred while processing JWT token")
+                    log.error("Error logging in: ${e.message}")
+                    response.setHeader("error", e.message)
+                    response.status = HttpStatus.FORBIDDEN.value()
+//                    response.sendError(HttpStatus.FORBIDDEN.value())
+                    val tokens = mapOf("error_message" to e.message)
+                    response.contentType = MediaType.APPLICATION_JSON_VALUE
+                    ObjectMapper().writeValue(response.outputStream, tokens)
                 }
             } else {
                 filterChain.doFilter(request, response)
